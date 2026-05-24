@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -22,7 +21,6 @@ import com.example.hotelapp.domain.model.Hotel
 @Composable
 fun HotelsScreen(
     onHotelClick: (Int) -> Unit,
-    onBookingsClick: () -> Unit,
     viewModel: HotelsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -30,14 +28,7 @@ fun HotelsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Отели") },
-                actions = {
-                    IconButton(onClick = onBookingsClick) {
-                        Icon(Icons.Default.BookmarkBorder, contentDescription = "Мои бронирования")
-                    }
-                }
-            )
+            TopAppBar(title = { Text("Поиск отелей") })
         }
     ) { padding ->
         Column(
@@ -57,9 +48,7 @@ fun HotelsScreen(
                     if (searchQuery.isNotEmpty()) {
                         TextButton(onClick = {
                             viewModel.loadHotels(city = searchQuery)
-                        }) {
-                            Text("Найти")
-                        }
+                        }) { Text("Найти") }
                     }
                 }
             )
@@ -72,7 +61,11 @@ fun HotelsScreen(
                 }
                 state.error != null -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = state.error!!, color = MaterialTheme.colorScheme.error)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = state.error!!, color = MaterialTheme.colorScheme.error)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(onClick = { viewModel.loadHotels() }) { Text("Повторить") }
+                        }
                     }
                 }
                 else -> {
@@ -99,16 +92,9 @@ fun HotelCard(hotel: Hotel, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = hotel.name,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text(text = hotel.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "${hotel.city}, ${hotel.country}",
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(text = "${hotel.city}, ${hotel.country}", color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -116,20 +102,11 @@ fun HotelCard(hotel: Hotel, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Star,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
+                    Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(text = hotel.rating.toString())
                 }
-                Text(
-                    text = "${hotel.pricePerNight}€/ночь",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Text(text = "${hotel.pricePerNight}€/ночь", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
         }
     }
