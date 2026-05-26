@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -25,10 +26,20 @@ fun HotelsScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var maxPrice by remember { mutableStateOf("") }
+    var sliderPosition by remember { mutableStateOf(500f) }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Поиск отелей") })
+            TopAppBar(
+                title = { Text("Поиск отелей") },
+                actions = {
+                    IconButton(onClick = { showFilterDialog = true }) {
+                        Icon(Icons.Default.FilterList, contentDescription = "Фильтры")
+                    }
+                }
+            )
         }
     ) { padding ->
         Column(
@@ -43,7 +54,7 @@ fun HotelsScreen(
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
                         TextButton(onClick = {
@@ -68,7 +79,18 @@ fun HotelsScreen(
                         }
                     }
                 }
+                state.hotels.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Отели не найдены", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
                 else -> {
+                    Text(
+                        text = "Найдено: ${state.hotels.size} отелей",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp
+                    )
                     LazyColumn(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -80,6 +102,50 @@ fun HotelsScreen(
                 }
             }
         }
+    }
+
+    if (showFilterDialog) {
+        AlertDialog(
+            onDismissRequest = { showFilterDialog = false },
+            title = { Text("Фильтры") },
+            text = {
+                Column {
+                    Text("Максимальная цена за ночь: ${sliderPosition.toInt()}€")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Slider(
+                        value = sliderPosition,
+                        onValueChange = { sliderPosition = it },
+                        valueRange = 50f..500f,
+                        steps = 9,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        label = { Text("Город") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.loadHotels(
+                        city = searchQuery.ifEmpty { null },
+                        maxPrice = sliderPosition.toDouble()
+                    )
+                    showFilterDialog = false
+                }) { Text("Применить") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    searchQuery = ""
+                    sliderPosition = 500f
+                    viewModel.loadHotels()
+                    showFilterDialog = false
+                }) { Text("Сбросить") }
+            }
+        )
     }
 }
 
@@ -94,7 +160,10 @@ fun HotelCard(hotel: Hotel, onClick: () -> Unit) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = hotel.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "${hotel.city}, ${hotel.country}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = "${hotel.city}, ${hotel.country}",
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -102,11 +171,20 @@ fun HotelCard(hotel: Hotel, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                    Icon(
+                        Icons.Default.Star,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = hotel.rating.toString())
+                    Text(text = String.format("%.1f", hotel.rating))
                 }
-                Text(text = "${hotel.pricePerNight}€/ночь", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = "${hotel.pricePerNight.toInt()}€/ночь",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
