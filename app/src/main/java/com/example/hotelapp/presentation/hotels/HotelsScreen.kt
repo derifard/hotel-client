@@ -21,6 +21,9 @@ import androidx.compose.foundation.background
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import androidx.compose.material.icons.filled.Hotel
+import androidx.compose.ui.platform.LocalContext
+import coil.request.ImageRequest
+import androidx.compose.ui.res.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,21 +112,54 @@ fun HotelsScreen(
     }
 
     if (showFilterDialog) {
+        var minRating by remember { mutableStateOf(0f) }
+        var maxRating by remember { mutableStateOf(5f) }
+
         AlertDialog(
             onDismissRequest = { showFilterDialog = false },
             title = { Text("Фильтры") },
             text = {
                 Column {
-                    Text("Максимальная цена за ночь: ${sliderPosition.toInt()}€")
-                    Spacer(modifier = Modifier.height(8.dp))
+                    // Цена
+                    Text(
+                        text = "Цена за ночь: от ${(sliderPosition * 0.5f).toInt()}€ до ${sliderPosition.toInt()}€",
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
                     Slider(
                         value = sliderPosition,
                         onValueChange = { sliderPosition = it },
                         valueRange = 50f..500f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Рейтинг
+                    Text(
+                        text = "Рейтинг: от ${String.format("%.1f", minRating)} до ${String.format("%.1f", maxRating)} ⭐",
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = "Минимальный рейтинг", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Slider(
+                        value = minRating,
+                        onValueChange = { if (it <= maxRating) minRating = it },
+                        valueRange = 0f..5f,
                         steps = 9,
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Text(text = "Максимальный рейтинг", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Slider(
+                        value = maxRating,
+                        onValueChange = { if (it >= minRating) maxRating = it },
+                        valueRange = 0f..5f,
+                        steps = 9,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
                     Spacer(modifier = Modifier.height(8.dp))
+
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
@@ -136,7 +172,9 @@ fun HotelsScreen(
                 Button(onClick = {
                     viewModel.loadHotels(
                         city = searchQuery.ifEmpty { null },
-                        maxPrice = sliderPosition.toDouble()
+                        maxPrice = sliderPosition.toDouble(),
+                        minRating = minRating.toDouble(),
+                        maxRating = maxRating.toDouble()
                     )
                     showFilterDialog = false
                 }) { Text("Применить") }
@@ -172,10 +210,15 @@ fun HotelCard(hotel: Hotel, onClick: () -> Unit) {
             ) {
                 if (hotel.imageUrl != null) {
                     AsyncImage(
-                        model = hotel.imageUrl,
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(hotel.imageUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = hotel.name,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        error = painterResource(android.R.drawable.ic_menu_gallery),
+                        placeholder = painterResource(android.R.drawable.ic_menu_gallery)
                     )
                 } else {
                     Box(
@@ -230,7 +273,7 @@ fun HotelCard(hotel: Hotel, onClick: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = String.format("%.1f", hotel.rating),
+                            text = hotel.rating.toString(),
                             fontSize = 13.sp
                         )
                     }
