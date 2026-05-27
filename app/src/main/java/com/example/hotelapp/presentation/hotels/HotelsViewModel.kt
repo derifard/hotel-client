@@ -33,11 +33,22 @@ class HotelsViewModel @Inject constructor(
         loadHotels()
     }
 
-    fun loadHotels(city: String? = null, maxPrice: Double? = null) {
+    fun loadHotels(
+        city: String? = null,
+        maxPrice: Double? = null,
+        minRating: Double? = null,
+        maxRating: Double? = null
+    ) {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
             try {
-                val hotels = getHotelsUseCase(city, maxPrice)
+                var hotels = getHotelsUseCase(city, maxPrice)
+                if (minRating != null) {
+                    hotels = hotels.filter { it.rating >= minRating }
+                }
+                if (maxRating != null) {
+                    hotels = hotels.filter { it.rating <= maxRating }
+                }
                 _state.value = _state.value.copy(
                     isLoading = false,
                     hotels = sortHotels(hotels, _state.value.sortOrder)
