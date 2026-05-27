@@ -24,6 +24,7 @@ fun BookingsScreen(
     viewModel: BookingsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    var bookingToDelete by remember { mutableStateOf<Booking?>(null) }
 
     Scaffold(
         topBar = {
@@ -78,16 +79,46 @@ fun BookingsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(state.bookings) { booking ->
-                        BookingCard(booking = booking)
+                        BookingCard(
+                            booking = booking,
+                            isDeleting = state.deletingId == booking.id,
+                            onDeleteClick = { bookingToDelete = booking }
+                        )
                     }
                 }
             }
         }
     }
+
+    bookingToDelete?.let { booking ->
+        AlertDialog(
+            onDismissRequest = { bookingToDelete = null },
+            title = { Text("Отмена бронирования") },
+            text = { Text("Вы уверены что хотите отменить бронирование в ${booking.hotelName}?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteBooking(booking.id)
+                        bookingToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) { Text("Отменить бронь") }
+            },
+            dismissButton = {
+                TextButton(onClick = { bookingToDelete = null }) { Text("Назад") }
+            }
+        )
+    }
 }
 
 @Composable
-fun BookingCard(booking: Booking) {
+fun BookingCard(
+    booking: Booking,
+    isDeleting: Boolean,
+    onDeleteClick: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(4.dp)
@@ -116,7 +147,7 @@ fun BookingCard(booking: Booking) {
                     fontSize = 14.sp
                 )
             }
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -130,25 +161,35 @@ fun BookingCard(booking: Booking) {
                     Text(text = booking.checkOut.take(10), fontWeight = FontWeight.Medium)
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Итого:",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
+                Text(text = "Итого:", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Text(
                     text = "${booking.totalPrice}€",
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            if (isDeleting) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+            } else {
+                OutlinedButton(
+                    onClick = onDeleteClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Отменить бронирование")
+                }
             }
         }
     }
