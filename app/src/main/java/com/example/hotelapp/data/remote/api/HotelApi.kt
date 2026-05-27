@@ -12,6 +12,7 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.DELETE
 
 interface HotelApi {
 
@@ -40,4 +41,10 @@ interface HotelApi {
     suspend fun getMyBookings(
         @Header("Authorization") token: String
     ): List<BookingDto>
+
+    @DELETE("bookings/{id}")
+    suspend fun deleteBooking(
+        @Header("Authorization") token: String,
+        @Path("id") bookingId: Int
+    ): retrofit2.Response<Unit>
 }
