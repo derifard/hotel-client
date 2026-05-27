@@ -24,4 +24,10 @@ class BookingRepositoryImpl @Inject constructor(
         val token = authRepository.getToken() ?: throw Exception("Не авторизован")
         return api.getMyBookings("Bearer $token").map { it.toDomain() }
     }
+
+    override suspend fun deleteBooking(bookingId: Int): Boolean {
+        val token = authRepository.getToken() ?: throw Exception("Не авторизован")
+        val response = api.deleteBooking("Bearer $token", bookingId)
+        return response.isSuccessful
+    }
 }
