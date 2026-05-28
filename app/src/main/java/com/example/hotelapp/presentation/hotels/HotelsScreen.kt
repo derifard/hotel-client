@@ -36,6 +36,10 @@ fun HotelsScreen(
     val state by viewModel.state.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var showFilterDialog by remember { mutableStateOf(false) }
+    var minPrice by remember { mutableStateOf("") }
+    var maxPriceText by remember { mutableStateOf("") }
+    var minRating by remember { mutableStateOf(0f) }
+    var maxRating by remember { mutableStateOf(5f) }
     var maxPrice by remember { mutableStateOf("") }
     var sliderPosition by remember { mutableStateOf(500f) }
 
@@ -114,10 +118,6 @@ fun HotelsScreen(
     }
 
     if (showFilterDialog) {
-        var minPrice by remember { mutableStateOf("") }
-        var maxPriceText by remember { mutableStateOf("") }
-        var minRating by remember { mutableStateOf(0f) }
-        var maxRating by remember { mutableStateOf(5f) }
 
         AlertDialog(
             onDismissRequest = { showFilterDialog = false },
