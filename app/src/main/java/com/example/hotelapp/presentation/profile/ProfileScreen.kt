@@ -121,27 +121,6 @@ fun ProfileScreen(
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(2.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = "Тёмная тема", fontWeight = FontWeight.Medium)
-                            Switch(
-                                checked = state.isDarkTheme,
-                                onCheckedChange = { viewModel.toggleTheme() }
-                            )
-                        }
-                    }
-
                     if (isEditing) {
                         OutlinedTextField(
                             value = editName,
@@ -202,6 +181,27 @@ fun ProfileScreen(
                             value = state.profile.phone.ifEmpty { "Не указано" }
                         )
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(2.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "Тёмная тема", fontWeight = FontWeight.Medium)
+                    Switch(
+                        checked = state.isDarkTheme,
+                        onCheckedChange = { viewModel.toggleTheme() }
+                    )
                 }
             }
 
