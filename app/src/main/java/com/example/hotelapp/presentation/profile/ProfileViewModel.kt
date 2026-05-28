@@ -2,6 +2,7 @@ package com.example.hotelapp.presentation.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.hotelapp.ThemeState
 import com.example.hotelapp.domain.usecase.GetUserProfileUseCase
 import com.example.hotelapp.domain.usecase.LogoutUseCase
 import com.example.hotelapp.domain.usecase.SaveUserProfileUseCase
@@ -45,6 +46,11 @@ class ProfileViewModel @Inject constructor(
                 _state.value = _state.value.copy(isLoading = false)
             }
         }
+        _state.value = _state.value.copy(
+            isLoading = false,
+            profile = profile,
+            isDarkTheme = ThemeState.isDarkTheme
+        )
     }
 
     fun saveProfile(name: String, email: String, phone: String) {
@@ -67,7 +73,8 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun toggleTheme() {
-        _state.value = _state.value.copy(isDarkTheme = !_state.value.isDarkTheme)
+        ThemeState.isDarkTheme = !ThemeState.isDarkTheme
+        _state.value = _state.value.copy(isDarkTheme = ThemeState.isDarkTheme)
     }
 
     fun logout(onComplete: () -> Unit) {
