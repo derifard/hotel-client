@@ -2,6 +2,7 @@ package com.example.hotelapp.data.repository
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.hotelapp.data.remote.api.HotelApi
@@ -22,13 +23,17 @@ class AuthRepositoryImpl @Inject constructor(
     private val nameKey = stringPreferencesKey("user_name")
     private val emailKey = stringPreferencesKey("user_email")
     private val phoneKey = stringPreferencesKey("user_phone")
+    private val profileEditedKey = booleanPreferencesKey("profile_edited")
 
     override suspend fun login(email: String, password: String): AuthResult {
         val response = api.login(LoginRequestDto(email, password))
         saveToken(response.token)
-        dataStore.edit {
-            it[emailKey] = email
-            it[nameKey] = response.user.name
+        val profileEdited = dataStore.data.map { it[profileEditedKey] ?: false }.first()
+        if (!profileEdited) {
+            dataStore.edit {
+                it[emailKey] = email
+                it[nameKey] = response.user.name
+            }
         }
         return response.toDomain()
     }
@@ -39,6 +44,7 @@ class AuthRepositoryImpl @Inject constructor(
         dataStore.edit {
             it[emailKey] = email
             it[nameKey] = name
+            it[profileEditedKey] = false
         }
         return response.toDomain()
     }
@@ -72,6 +78,7 @@ class AuthRepositoryImpl @Inject constructor(
             it[nameKey] = name
             it[emailKey] = email
             it[phoneKey] = phone
+            it[profileEditedKey] = true
         }
     }
 }
