@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            HotelAppTheme {
+            HotelAppTheme(darkTheme = ThemeState.isDarkTheme) {
                 AppNavigation()
             }
         }
