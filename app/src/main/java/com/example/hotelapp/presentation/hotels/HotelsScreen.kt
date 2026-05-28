@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.ui.platform.LocalContext
 import coil.request.ImageRequest
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,6 +114,8 @@ fun HotelsScreen(
     }
 
     if (showFilterDialog) {
+        var minPrice by remember { mutableStateOf("") }
+        var maxPriceText by remember { mutableStateOf("") }
         var minRating by remember { mutableStateOf(0f) }
         var maxRating by remember { mutableStateOf(5f) }
 
@@ -120,28 +124,35 @@ fun HotelsScreen(
             title = { Text("Фильтры") },
             text = {
                 Column {
-                    // Цена
-                    Text(
-                        text = "Цена за ночь: от ${(sliderPosition * 0.5f).toInt()}€ до ${sliderPosition.toInt()}€",
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Slider(
-                        value = sliderPosition,
-                        onValueChange = { sliderPosition = it },
-                        valueRange = 50f..500f,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Text("Цена за ночь (€)", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = minPrice,
+                            onValueChange = { minPrice = it },
+                            label = { Text("От") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            value = maxPriceText,
+                            onValueChange = { maxPriceText = it },
+                            label = { Text("До") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Рейтинг
-                    Text(
-                        text = "Рейтинг: от ${String.format("%.1f", minRating)} до ${String.format("%.1f", maxRating)} ⭐",
-                        fontWeight = FontWeight.Medium
-                    )
+                    Text("Рейтинг", fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "Минимальный рейтинг", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = "От ${String.format("%.1f", minRating)} до ${String.format("%.1f", maxRating)} ⭐",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 13.sp
+                    )
+                    Text(text = "Минимальный", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Slider(
                         value = minRating,
                         onValueChange = { if (it <= maxRating) minRating = it },
@@ -149,7 +160,7 @@ fun HotelsScreen(
                         steps = 9,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Text(text = "Максимальный рейтинг", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "Максимальный", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Slider(
                         value = maxRating,
                         onValueChange = { if (it >= minRating) maxRating = it },
@@ -172,7 +183,7 @@ fun HotelsScreen(
                 Button(onClick = {
                     viewModel.loadHotels(
                         city = searchQuery.ifEmpty { null },
-                        maxPrice = sliderPosition.toDouble(),
+                        maxPrice = maxPriceText.toDoubleOrNull(),
                         minRating = minRating.toDouble(),
                         maxRating = maxRating.toDouble()
                     )
@@ -182,7 +193,6 @@ fun HotelsScreen(
             dismissButton = {
                 TextButton(onClick = {
                     searchQuery = ""
-                    sliderPosition = 500f
                     viewModel.loadHotels()
                     showFilterDialog = false
                 }) { Text("Сбросить") }
