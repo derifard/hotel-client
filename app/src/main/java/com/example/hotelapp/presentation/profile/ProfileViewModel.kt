@@ -41,16 +41,18 @@ class ProfileViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true)
             try {
                 val profile = getUserProfileUseCase()
-                _state.value = _state.value.copy(isLoading = false, profile = profile)
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    profile = profile,
+                    isDarkTheme = ThemeState.isDarkTheme
+                )
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false)
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    isDarkTheme = ThemeState.isDarkTheme
+                )
             }
         }
-        _state.value = _state.value.copy(
-            isLoading = false,
-            profile = profile,
-            isDarkTheme = ThemeState.isDarkTheme
-        )
     }
 
     fun saveProfile(name: String, email: String, phone: String) {
