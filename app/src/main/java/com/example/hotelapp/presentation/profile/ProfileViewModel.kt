@@ -17,7 +17,8 @@ data class ProfileState(
     val profile: UserProfile = UserProfile("", "", ""),
     val isSaving: Boolean = false,
     val saveSuccess: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isDarkTheme: Boolean = false
 )
 
 @HiltViewModel
@@ -63,6 +64,10 @@ class ProfileViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun toggleTheme() {
+        _state.value = _state.value.copy(isDarkTheme = !_state.value.isDarkTheme)
     }
 
     fun logout(onComplete: () -> Unit) {
