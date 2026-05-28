@@ -8,4 +8,8 @@ interface AuthRepository {
     suspend fun getToken(): String?
     suspend fun saveToken(token: String)
     suspend fun logout()
+    suspend fun getUserName(): String
+    suspend fun getUserEmail(): String
+    suspend fun getUserPhone(): String
+    suspend fun saveUserProfile(name: String, email: String, phone: String)
 }
