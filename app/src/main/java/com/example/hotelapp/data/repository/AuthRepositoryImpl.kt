@@ -19,16 +19,27 @@ class AuthRepositoryImpl @Inject constructor(
 ) : AuthRepository {
 
     private val tokenKey = stringPreferencesKey("jwt_token")
+    private val nameKey = stringPreferencesKey("user_name")
+    private val emailKey = stringPreferencesKey("user_email")
+    private val phoneKey = stringPreferencesKey("user_phone")
 
     override suspend fun login(email: String, password: String): AuthResult {
         val response = api.login(LoginRequestDto(email, password))
         saveToken(response.token)
+        dataStore.edit {
+            it[emailKey] = email
+            it[nameKey] = response.user.name
+        }
         return response.toDomain()
     }
 
     override suspend fun register(email: String, password: String, name: String): AuthResult {
         val response = api.register(RegisterRequestDto(email, password, name))
         saveToken(response.token)
+        dataStore.edit {
+            it[emailKey] = email
+            it[nameKey] = name
+        }
         return response.toDomain()
     }
 
@@ -41,6 +52,26 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun logout() {
-        dataStore.edit { it.remove(tokenKey) }
+        dataStore.edit { it.clear() }
+    }
+
+    override suspend fun getUserName(): String {
+        return dataStore.data.map { it[nameKey] ?: "" }.first()
+    }
+
+    override suspend fun getUserEmail(): String {
+        return dataStore.data.map { it[emailKey] ?: "" }.first()
+    }
+
+    override suspend fun getUserPhone(): String {
+        return dataStore.data.map { it[phoneKey] ?: "" }.first()
+    }
+
+    override suspend fun saveUserProfile(name: String, email: String, phone: String) {
+        dataStore.edit {
+            it[nameKey] = name
+            it[emailKey] = email
+            it[phoneKey] = phone
+        }
     }
 }
